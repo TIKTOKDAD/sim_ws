@@ -1,0 +1,88 @@
+<?xml version="1.0"?>
+
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+    <!--
+        Unitree L1 4D LiDAR 模型。
+        该文件定义雷达外观、安装位姿和 Gazebo gpu_lidar 参数，输出话题为 unitree_lidar。
+    -->
+
+    <!-- L1 雷达主体 link：视觉和碰撞都引用原厂/导出的 L1_4D_Lidar.dae mesh。 -->
+    <link name="lidar_l1_link">
+        <inertial>
+            <!-- 传感器惯量采用近似值，足够支撑 Gazebo 稳定仿真。 -->
+            <mass value="0.5"/>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+            <inertia ixx="0.01" ixy="0" ixz="0" iyy="0.01" iyz="0" izz="0.01"/>
+        </inertial>
+        <visual>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+            <geometry>
+                <mesh filename="file://$(find unitree_go2_description)/meshes/L1_4D_Lidar.dae" scale="1 1 1"/>
+            </geometry>
+            <material name="black">
+                <color rgba="0.0 0.0 0.0 1.0"/>
+            </material>
+        </visual>
+        <collision>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+            <geometry>
+                <mesh filename="file://$(find unitree_go2_description)/meshes/L1_4D_Lidar.dae" scale="1 1 1"/>
+            </geometry>
+            <material name="black">
+                <color rgba="0.0 0.0 0.0 1.0"/>
+            </material>
+        </collision>
+    </link>
+
+    <!-- L1 固定安装在 base_link 前方，RPY 用于校准 mesh 坐标系和实际扫描方向。 -->
+    <joint name="lidar_l1_joint" type="fixed">
+        <parent link="base_link"/>
+        <child link="lidar_l1_link"/>
+        <!-- <origin rpy="2.94 0 1.5705" xyz="0.25 -0.038 -0.03"/> -->
+        <origin rpy="2.879 0.0 1.5705" xyz="0.25 -0.038 -0.03"/>
+    </joint>
+
+    <!-- Gazebo GPU lidar：生成稠密 3D 点云，桥接后对应 /unitree_lidar/points。 -->
+    <gazebo reference="lidar_l1_link">
+        <sensor name="lidar_l1" type="gpu_lidar">
+            <topic>unitree_lidar</topic>
+            <update_rate>10</update_rate>
+            <lidar>
+                <scan>
+                    <!-- 水平扫描覆盖 360 度，samples 越大点云越密集。 -->
+                    <horizontal>
+                        <samples>600</samples>
+                        <resolution>1</resolution>
+                        <min_angle>-3.14159</min_angle>
+                        <max_angle>3.14159</max_angle>
+                    </horizontal>
+                    <!-- 垂直扫描约 90 度，30 线用于近似 4D LiDAR 的立体视场。 -->
+                    <vertical>
+                        <samples>30</samples>
+                        <resolution>1</resolution>
+                        <min_angle>-0.785398</min_angle>
+                        <max_angle>0.785398</max_angle>
+                    </vertical>
+                </scan>
+                <!-- 最小/最大测距范围和距离分辨率。 -->
+                <range>
+                    <min>0.8</min>
+                    <max>30.0</max>
+                    <resolution>0.001</resolution>
+                </range>
+                <!-- 高斯噪声用于模拟真实点云抖动。 -->
+                <noise>
+                    <type>gaussian</type>
+                    <mean>0.0</mean>
+                    <stddev>0.008</stddev>
+                </noise>
+            </lidar>
+            <!-- 默认不在 Gazebo 中渲染扫描线，减少图形负担；RViz 可显示桥接后的点云。 -->
+            <visualize>false</visualize>
+            <gz_frame_id>lidar_l1_link</gz_frame_id>
+            <!-- 传感器随仿真持续运行。 -->
+            <always_on>1</always_on>
+        </sensor>
+    </gazebo>
+</robot>

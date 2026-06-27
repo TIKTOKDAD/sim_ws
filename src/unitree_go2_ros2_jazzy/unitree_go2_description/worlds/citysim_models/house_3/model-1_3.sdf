@@ -1,0 +1,28 @@
+<?xml version='1.0' encoding='utf-8'?>
+<sdf version="1.10">
+  <model name="House 3">
+    <static>true</static>
+    <link name="link">
+      <visual name="visual">
+        <geometry>
+          <mesh>
+            <uri>meshes/house_3.dae</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <ambient>0.50 0.50 0.48 1</ambient>
+          <diffuse>0.70 0.70 0.66 1</diffuse>
+          <specular>0.10 0.10 0.09 1</specular>
+          <pbr>
+            <metal>
+              <albedo_map>materials/textures/House_3_Diffuse.png</albedo_map>
+              <normal_map>../house_1/materials/textures/House_1_Normal.png</normal_map>
+              <roughness>0.78</roughness>
+              <metalness>0.0</metalness>
+            </metal>
+          </pbr>
+        </material>
+      </visual>
+    </link>
+  </model>
+</sdf>

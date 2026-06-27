@@ -1,0 +1,16 @@
+<?xml version='1.0' encoding='utf-8'?>
+<sdf version="1.10">
+  <model name="grocery_store">
+    <static>true</static>
+    <link name="link">
+      <visual name="visual">
+        <pose>0 -1.961551703 0 0 0 0</pose>
+        <geometry>
+          <mesh>
+            <uri>meshes/grocery_store.dae</uri>
+          </mesh>
+        </geometry>
+      </visual>
+    </link>
+  </model>
+</sdf>

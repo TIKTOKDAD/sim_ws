@@ -1,0 +1,280 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<sdf version='1.7'>
+  <world name='warehouse'>
+    <!-- 物理步长设置：0.003s 对应约 333Hz 物理积分，上限更新率 1000Hz。 -->
+    <physics type="ode">
+      <max_step_size>0.003</max_step_size>
+      <real_time_factor>1.0</real_time_factor>
+      <real_time_update_rate>1000</real_time_update_rate>
+      <gravity>0 0 -9.8</gravity>
+    </physics>
+
+    <!-- Gazebo 系统插件：物理、用户命令、场景广播、传感器、IMU 和 GPS/NavSat。 -->
+    <plugin name='gz::sim::systems::Physics' filename='libgz-sim-physics-system.so'/>
+    <plugin name='gz::sim::systems::UserCommands' filename='libgz-sim-user-commands-system.so'/>
+    <plugin name='gz::sim::systems::SceneBroadcaster' filename='libgz-sim-scene-broadcaster-system.so'/>
+    <plugin name="gz::sim::systems::Sensors" filename="libgz-sim-sensors-system.so">
+      <render_engine>ogre2</render_engine>
+    </plugin>
+    <plugin name="gz::sim::systems::Imu" filename="libgz-sim-imu-system.so"/>
+    <plugin name="gz::sim::systems::NavSat" filename="libgz-sim-navsat-system.so"/>
+
+    <!-- 仓库是室内世界，关闭网格和阴影可减少渲染负担并保持画面干净。 -->
+    <scene>
+      <ambient>1 1 1 1</ambient>
+      <background>0.3 0.7 0.9 1</background>
+      <shadows>0</shadows>
+      <grid>false</grid>
+    </scene>
+
+    <!-- 地理坐标供 NavSat/GPS 插件使用，使室内世界也能输出稳定的 GPS 原点。 -->
+    <spherical_coordinates>
+      <surface_model>EARTH_WGS84</surface_model>
+      <world_frame_orientation>ENU</world_frame_orientation>
+      <latitude_deg>-22.986687</latitude_deg>
+      <longitude_deg>-43.202501</longitude_deg>
+      <elevation>0</elevation>
+      <heading_deg>0</heading_deg>
+    </spherical_coordinates>
+
+    <!-- 这个光源曾导致多机器人 spawn 时崩溃，因此暂时保留为注释，避免破坏默认仿真。 -->
+    <!-- TODO(rkreinin): Fix lighting so that spawning multiple robots does not crash the sim-->
+    <!-- <light type="directional" name="sun">
+      <cast_shadows>0</cast_shadows>
+      <pose>-5 -3 10 0 0 0</pose>
+      <diffuse>1 1 1 1</diffuse>
+      <specular>1 1 1 1</specular>
+      <direction>0 0 -1</direction>
+    </light> -->
+
+    <!-- 最小 ground plane 只提供平面 collision；视觉地面来自下方 Warehouse 模型。 -->
+    <model name='ground_plane'>
+      <static>true</static>
+      <link name='link'>
+        <collision name='collision'>
+          <geometry>
+            <plane>
+              <normal>0.0 0.0 1</normal>
+              <size>1 1</size>
+            </plane>
+          </geometry>
+        </collision>
+      </link>
+      <pose>0 0 0 0 0 0</pose>
+    </model>
+
+    <!-- Base：从 Gazebo Fuel 引入仓库主体模型，作为默认室内导航环境。 -->
+    <include>
+      <uri>
+        https://fuel.gazebosim.org/1.0/OpenRobotics/models/Warehouse
+      </uri>
+      <name>warehouse</name>
+      <pose>0 0 -0.1 0 0 0</pose>
+    </include>
+
+    <!-- Pallet Box Mobile -->
+    <!-- <include>
+      <uri>
+        https://fuel.gazebosim.org/1.0/MovAi/models/pallet_box_mobile
+      </uri>
+      <name>pallet_box_0</name>
+      <pose>-4 12 0.01 0 0 0</pose>
+      <static>true</static>
+    </include> -->
+
+    <!-- Shelves：货架构成主要导航障碍，测试路径规划、避障和窄通道通过能力。 -->
+    <include>
+      <uri>
+        https://fuel.gazebosim.org/1.0/MovAi/models/shelf_big
+      </uri>
+      <name>shelf_big_0</name>
+      <pose>-8.5 -13 0 0 -0 0</pose>
+    </include>
+    <include>
+      <uri>
+        https://fuel.gazebosim.org/1.0/MovAi/models/shelf_big
+      </uri>
+      <name>shelf_big_1</name>
+      <pose>6.5 -13 0 0 -0 0</pose>
+    </include>
+    <include>
+      <uri>
+        https://fuel.gazebosim.org/1.0/MovAi/models/shelf_big
+      </uri>
+      <name>shelf_big_2</name>
+      <pose>-1.5 -13 0 0 -0 0</pose>
+    </include>
+    <include>
+      <uri>
+        https://fuel.gazebosim.org/1.0/MovAi/models/shelf
+      </uri>
+      <name>shelf_3</name>
+      <pose>13.5 4.5 0 0 -0 0</pose>
+    </include>
+    <include>
+      <uri>
+        https://fuel.gazebosim.org/1.0/MovAi/models/shelf
+      </uri>
+      <name>shelf_4</name>
+      <pose>10 4.5 0 0 -0 0</pose>
+    </include>
+    <include>
+      <uri>
+        https://fuel.gazebosim.org/1.0/MovAi/models/shelf
+      </uri>
+      <name>shelf_5</name>
+      <pose>13.5 -21 0 0 -0 0</pose>
+    </include>
+    <include>
+      <uri>
+        https://fuel.gazebosim.org/1.0/MovAi/models/shelf
+      </uri>
+      <name>shelf_6</name>
+      <pose>13.5 -15 0 0 -0 0</pose>
+    </include>
+    <include>
+      <uri>
+        https://fuel.gazebosim.org/1.0/MovAi/models/shelf
+      </uri>
+      <name>shelf_7</name>
+      <pose>0.4 -2 0 0 -0 0</pose>
+    </include>
+
+    <!-- Navigation Challenge section：额外摆放的货架用于形成更复杂的局部规划挑战。 -->
+
+    <include>
+      <uri>
+        https://fuel.gazebosim.org/1.0/MovAi/models/shelf_big
+      </uri>
+      <name>shelf_big_3</name>
+      <pose>3.5 9.5 0 0 0 1.57</pose>
+    </include>
+    <include>
+      <uri>
+        https://fuel.gazebosim.org/1.0/MovAi/models/shelf_big
+      </uri>
+      <name>shelf_big_4</name>
+      <pose>-1.3 18.5 0 0 0 1.57</pose>
+    </include>
+    <include>
+      <uri>
+        https://fuel.gazebosim.org/1.0/MovAi/models/shelf
+      </uri>
+      <name>shelf_0</name>
+      <pose>-10 21.5 0 0 -0 1.57</pose>
+    </include>
+    <include>
+      <uri>
+        https://fuel.gazebosim.org/1.0/MovAi/models/shelf
+      </uri>
+      <name>shelf_1</name>
+      <pose>-7 23.6 0 0 -0 1.57</pose>
+    </include>
+    <include>
+      <uri>
+        https://fuel.gazebosim.org/1.0/MovAi/models/shelf
+      </uri>
+      <name>shelf_2</name>
+      <pose>-4 21.5 0 0 -0 1.57</pose>
+    </include>
+
+    <!-- Barriers：Jersey Barrier 模型模拟临时隔离区域或不可通行边界。 -->
+
+    <include>
+      <uri>
+      https://fuel.gazebosim.org/1.0/OpenRobotics/models/Jersey Barrier
+      </uri>
+      <name>barrier_0</name>
+      <pose>-10.4 14.75 0 0 0 1.57</pose>
+    </include>
+    <include>
+      <uri>
+      https://fuel.gazebosim.org/1.0/OpenRobotics/models/Jersey Barrier
+      </uri>
+      <name>barrier_1</name>
+      <pose>-10.4 10.5 0 0 0 1.57</pose>
+    </include>
+    <include>
+      <uri>
+      https://fuel.gazebosim.org/1.0/OpenRobotics/models/Jersey Barrier
+      </uri>
+      <name>barrier_2</name>
+      <pose>-10.4 6.5 0 0 0 1.57</pose>
+    </include>
+    <include>
+      <uri>
+      https://fuel.gazebosim.org/1.0/OpenRobotics/models/Jersey Barrier
+      </uri>
+      <name>barrier_3</name>
+      <pose>-12.85 4.85 0 0 0 0</pose>
+    </include>
+
+    <!-- Chairs：小尺寸障碍物用于测试传感器感知和局部避障。 -->
+
+    <include>
+      <uri>
+        https://fuel.gazebosim.org/1.0/OpenRobotics/models/Chair
+      </uri>
+      <name>chair_0</name>
+      <pose>14.3 -5.5 0 0 -0 3</pose>
+    </include>
+    <include>
+      <uri>
+        https://fuel.gazebosim.org/1.0/OpenRobotics/models/Chair
+      </uri>
+      <name>chair_1</name>
+      <pose>14.3 -4 0 0 -0 -3</pose>
+    </include>
+    <include>
+      <uri>
+        https://fuel.gazebosim.org/1.0/OpenRobotics/models/foldable_chair
+      </uri>
+      <name>fchair_0</name>
+      <pose>-11.5 6.4 0 0 -0 -1.8</pose>
+    </include>
+    <include>
+      <uri>
+        https://fuel.gazebosim.org/1.0/OpenRobotics/models/foldable_chair
+      </uri>
+      <name>fchair1</name>
+      <pose>-14 6.5 0 0 -0 1.9</pose>
+    </include>
+
+    <!-- Table：与椅子组合形成办公室/休息区一类的静态障碍。 -->
+
+    <include>
+      <uri>
+        https://fuel.gazebosim.org/1.0/OpenRobotics/models/Table
+      </uri>
+      <name>table0</name>
+      <pose>-12.7 6.5 0 0 0 0</pose>
+    </include>
+
+    <!-- People：人物模型为动态/语义感知演示提供视觉干扰和障碍参照。 -->
+
+    <!-- <include>
+      <uri>
+      https://fuel.gazebosim.org/1.0/OpenRobotics/models/Rescue Randy Sitting
+      </uri>
+      <name>Person 0 - Sitting</name>
+      <pose>14.65 -10 0 0 0 -1.57</pose>
+    </include> -->
+
+    <include>
+      <uri>
+      https://fuel.gazebosim.org/1.0/OpenRobotics/models/MaleVisitorOnPhone
+      </uri>
+      <name>Person 1 - Standing</name>
+      <pose>1 -1 0 0 0 1.57</pose>
+    </include>
+
+    <include>
+      <uri>
+      https://fuel.gazebosim.org/1.0/plateau/models/Casual female
+      </uri>
+      <name>Person 2 - Walking</name>
+      <pose>-12 15 0 0 0 0</pose>
+    </include>
+
+  </world>
+</sdf>

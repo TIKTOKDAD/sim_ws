@@ -1,0 +1,268 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+  <!--
+    Gazebo Sim 全局插件和 link 级物理参数。
+    本文件被 unitree_go2_robot.xacro include，内容会随 robot_description 一起交给 Gazebo。
+  -->
+
+  <!-- PosePublisher 发布 link/sensor 位姿，ros_gz_bridge 再把 /tf 和 pose 信息桥到 ROS 2。 -->
+  <gazebo>
+    <plugin filename="gz-sim-pose-publisher-system" name="gz::sim::systems::PosePublisher">
+      <publish_link_pose>true</publish_link_pose>
+      <publish_sensor_pose>true</publish_sensor_pose>
+      <publish_collision_pose>false</publish_collision_pose>
+      <publish_visual_pose>false</publish_visual_pose>
+      <publish_nested_model_pose>false</publish_nested_model_pose>
+      <use_pose_vector_msg>true</use_pose_vector_msg>
+      <static_publisher>true</static_publisher>
+      <static_update_frequency>100</static_update_frequency>
+    </plugin>
+  </gazebo>
+
+  <!-- 备用全局物理引擎配置；当前 world 文件已经加载 Physics 插件，因此这里保持注释。 -->
+  <!-- <gazebo>
+    <plugin filename="gz-sim-physics-system" name="gz::sim::systems::Physics">
+      <engine>
+        <filename>gz-physics-bullet-plugin</filename>
+      </engine>
+    </plugin>
+  </gazebo> -->
+
+  <!-- ros2_control 插件：读取 ros_control.yaml，并从 robot_state_publisher 获取 robot_description。 -->
+  <gazebo>
+    <plugin filename="gz_ros2_control-system" name="gz_ros2_control::GazeboSimROS2ControlPlugin">
+      <parameters>$(find unitree_go2_sim)/config/ros_control/ros_control.yaml</parameters>
+      <robot_param_node>robot_state_publisher</robot_param_node>
+    </plugin>
+  </gazebo>
+
+  <!-- Gazebo 里程计插件：输出 /odom，后续由 launch 文件中的 EKF 节点进一步滤波。 -->
+  <gazebo>
+    <plugin filename="gz-sim-odometry-publisher-system" name="gz::sim::systems::OdometryPublisher">
+      <odom_frame>odom</odom_frame>
+      <robot_base_frame>base_link</robot_base_frame>
+      <odom_topic>/odom</odom_topic>
+      <odom_publish_frequency>50</odom_publish_frequency>
+    </plugin>
+  </gazebo>
+
+  <!-- IMU 传感器：绑定 imu_link，添加高斯噪声模拟真实传感器读数。 -->
+  <gazebo reference="imu_link">
+    <sensor name="imu_sensor" type="imu">
+      <always_on>true</always_on>
+      <update_rate>100</update_rate>
+      <visualize>true</visualize>
+      <topic>imu/data</topic>
+      <gz_frame_id>imu_link</gz_frame_id>
+      <imu>
+        <!-- 角速度噪声，单位为 rad/s 量级。 -->
+        <angular_velocity>
+          <x>
+            <noise type="gaussian">
+              <mean>0.0</mean>
+              <stddev>2e-4</stddev>
+            </noise>
+          </x>
+          <y>
+            <noise type="gaussian">
+              <mean>0.0</mean>
+              <stddev>2e-4</stddev>
+            </noise>
+          </y>
+          <z>
+            <noise type="gaussian">
+              <mean>0.0</mean>
+              <stddev>2e-4</stddev>
+            </noise>
+          </z>
+        </angular_velocity>
+        <!-- 线加速度噪声，单位为 m/s^2 量级。 -->
+        <linear_acceleration>
+          <x>
+            <noise type="gaussian">
+              <mean>0.0</mean>
+              <stddev>1.7e-2</stddev>
+            </noise>
+          </x>
+          <y>
+            <noise type="gaussian">
+              <mean>0.0</mean>
+              <stddev>1.7e-2</stddev>
+            </noise>
+          </y>
+          <z>
+            <noise type="gaussian">
+              <mean>0.0</mean>
+              <stddev>1.7e-2</stddev>
+            </noise>
+          </z>
+        </linear_acceleration>
+      </imu>
+      <plugin filename="gz-sim-imu-system" name="gz::sim::systems::Imu">
+        <initial_orientation_as_reference>false</initial_orientation_as_reference>
+      </plugin>
+    </sensor>
+  </gazebo>
+
+  <!-- RGB 相机：绑定各 camera link，Gazebo bridge 会转换为 sensor_msgs/Image。 -->
+  <xacro:macro name="rgb_camera_sensor" params="link_name sensor_name topic">
+    <gazebo reference="${link_name}">
+      <sensor name="${sensor_name}" type="camera">
+        <pose>0 0.0 0 0 0 0</pose>
+        <camera>
+          <horizontal_fov>1.367</horizontal_fov>
+          <image>
+            <width>640</width>
+            <height>480</height>
+          </image>
+          <clip>
+            <near>0.05</near>
+            <far>200</far>
+          </clip>
+        </camera>
+        <gz_frame_id>${link_name}</gz_frame_id>
+        <always_on>1</always_on>
+        <update_rate>10</update_rate>
+        <visualize>1</visualize>
+        <topic>${topic}</topic>
+      </sensor>
+    </gazebo>
+  </xacro:macro>
+
+  <xacro:rgb_camera_sensor link_name="camera_link" sensor_name="rgb_camera" topic="rgb_image"/>
+  <xacro:rgb_camera_sensor link_name="left_camera_link" sensor_name="left_rgb_camera" topic="left_rgb_image"/>
+  <xacro:rgb_camera_sensor link_name="right_camera_link" sensor_name="right_rgb_camera" topic="right_rgb_image"/>
+
+  <!--
+    足端接触传感器：Gazebo 会把固定的 foot_link 合并到 lower_leg_link，
+    因此这里直接绑定 lower_leg_link，并监听合并后的足端 collision 名称。
+    该传感器只发布接触信息，不新增 TF frame。
+  -->
+  <xacro:macro name="foot_contact_sensor" params="prefix">
+    <gazebo reference="${prefix}_lower_leg_link">
+      <sensor name="${prefix}_foot_contact" type="contact">
+        <pose>0 0 ${-calf_length} 0 0 0</pose>
+        <always_on>true</always_on>
+        <update_rate>100</update_rate>
+        <topic>${prefix}_foot_contact</topic>
+        <contact>
+          <collision>${prefix}_lower_leg_link_fixed_joint_lump__${prefix}_foot_link_collision_1</collision>
+        </contact>
+      </sensor>
+    </gazebo>
+  </xacro:macro>
+
+  <xacro:foot_contact_sensor prefix="lf"/>
+  <xacro:foot_contact_sensor prefix="rf"/>
+  <xacro:foot_contact_sensor prefix="lh"/>
+  <xacro:foot_contact_sensor prefix="rh"/>
+
+  <!-- 机身接触参数。mu1/mu2 为两个切向摩擦系数，kp/kd 为接触刚度和阻尼。 -->
+  <gazebo reference="trunk">
+    <mu1>0.2</mu1>
+    <mu2>0.2</mu2>
+    <kp>10000.0</kp>
+    <kd>1.0</kd>
+  </gazebo>
+
+  <!-- 左前腿接触参数：髋/腿段摩擦较低，足端摩擦较高以获得稳定支撑。 -->
+  <gazebo reference="lf_hip_link">
+    <mu1>0.2</mu1>
+    <mu2>0.2</mu2>
+  </gazebo>
+  <gazebo reference="lf_upper_leg_link">
+    <mu1>0.2</mu1>
+    <mu2>0.2</mu2>
+    <self_collide>1</self_collide>
+    <kp>10000.0</kp>
+    <kd>1.0</kd>
+  </gazebo>
+  <gazebo reference="lf_lower_leg_link">
+    <mu1>0.2</mu1>
+    <mu2>0.2</mu2>
+    <self_collide>1</self_collide>
+  </gazebo>
+  <gazebo reference="lf_foot_link">
+    <mu1>0.6</mu1>
+    <mu2>0.6</mu2>
+    <self_collide>1</self_collide>
+    <kp>10000.0</kp>
+    <kd>1.0</kd>
+  </gazebo>
+
+  <!-- 右前腿接触参数，与左前腿保持对称。 -->
+  <gazebo reference="rf_hip_link">
+    <mu1>0.2</mu1>
+    <mu2>0.2</mu2>
+  </gazebo>
+  <gazebo reference="rf_upper_leg_link">
+    <mu1>0.2</mu1>
+    <mu2>0.2</mu2>
+    <self_collide>1</self_collide>
+    <kp>10000.0</kp>
+    <kd>1.0</kd>
+  </gazebo>
+  <gazebo reference="rf_lower_leg_link">
+    <mu1>0.2</mu1>
+    <mu2>0.2</mu2>
+    <self_collide>1</self_collide>
+  </gazebo>
+  <gazebo reference="rf_foot_link">
+    <mu1>0.6</mu1>
+    <mu2>0.6</mu2>
+    <self_collide>1</self_collide>
+    <kp>10000.0</kp>
+    <kd>1.0</kd>
+  </gazebo>
+
+  <!-- 左后腿接触参数。self_collide 打开后，腿段与其他碰撞体的接触会更真实。 -->
+  <gazebo reference="lh_hip_link">
+    <mu1>0.2</mu1>
+    <mu2>0.2</mu2>
+  </gazebo>
+  <gazebo reference="lh_upper_leg_link">
+    <mu1>0.2</mu1>
+    <mu2>0.2</mu2>
+    <self_collide>1</self_collide>
+    <kp>10000.0</kp>
+    <kd>1.0</kd>
+  </gazebo>
+  <gazebo reference="lh_lower_leg_link">
+    <mu1>0.2</mu1>
+    <mu2>0.2</mu2>
+    <self_collide>1</self_collide>
+  </gazebo>
+  <gazebo reference="lh_foot_link">
+    <mu1>0.6</mu1>
+    <mu2>0.6</mu2>
+    <self_collide>1</self_collide>
+    <kp>10000.0</kp>
+    <kd>1.0</kd>
+  </gazebo>
+
+  <!-- 右后腿接触参数，与左后腿保持对称。 -->
+  <gazebo reference="rh_hip_link">
+    <mu1>0.2</mu1>
+    <mu2>0.2</mu2>
+  </gazebo>
+  <gazebo reference="rh_upper_leg_link">
+    <mu1>0.2</mu1>
+    <mu2>0.2</mu2>
+    <self_collide>1</self_collide>
+    <kp>10000.0</kp>
+    <kd>1.0</kd>
+  </gazebo>
+  <gazebo reference="rh_lower_leg_link">
+    <mu1>0.2</mu1>
+    <mu2>0.2</mu2>
+    <self_collide>1</self_collide>
+  </gazebo>
+  <gazebo reference="rh_foot_link">
+    <mu1>0.6</mu1>
+    <mu2>0.6</mu2>
+    <self_collide>1</self_collide>
+    <kp>10000.0</kp>
+    <kd>1.0</kd>
+  </gazebo>
+
+</robot>

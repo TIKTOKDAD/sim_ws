@@ -1,0 +1,15 @@
+<?xml version='1.0' encoding='utf-8'?>
+<sdf version="1.10">
+  <model name="Construction Cone">
+    <link name="link">
+      <visual name="visual">
+        <geometry>
+          <mesh>
+            <scale>10 10 10</scale>
+            <uri>meshes/construction_cone.dae</uri>
+          </mesh>
+        </geometry>
+      </visual>
+    </link>
+  </model>
+</sdf>

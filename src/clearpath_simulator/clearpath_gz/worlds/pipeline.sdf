@@ -1,0 +1,131 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<sdf version='1.4'>
+  <world name='pipeline'>
+    <!-- 物理步长设置：0.003s 对应约 333Hz 物理积分，上限更新率 1000Hz。 -->
+    <physics type='ode'>
+      <max_step_size>0.003</max_step_size>
+      <real_time_factor>1.0</real_time_factor>
+      <real_time_update_rate>1000</real_time_update_rate>
+      <gravity>0 0 -9.8</gravity>
+    </physics>
+
+    <!-- Gazebo 系统插件：物理、用户命令、场景广播、传感器、IMU 和 GPS/NavSat。 -->
+    <plugin name='gz::sim::systems::Physics' filename='libgz-sim-physics-system.so'/>
+    <plugin name='gz::sim::systems::UserCommands' filename='libgz-sim-user-commands-system.so'/>
+    <plugin name='gz::sim::systems::SceneBroadcaster' filename='libgz-sim-scene-broadcaster-system.so'/>
+    <plugin name="gz::sim::systems::Sensors" filename="libgz-sim-sensors-system.so">
+      <render_engine>ogre2</render_engine>
+    </plugin>
+    <plugin name="gz::sim::systems::Imu" filename="libgz-sim-imu-system.so"/>
+    <plugin name="gz::sim::systems::NavSat" filename="libgz-sim-navsat-system.so"/>
+
+    <!-- 室外管线场景开启天空云层和阴影，用于更复杂的户外导航/感知测试。 -->
+    <scene>
+      <ambient>1 1 1 1</ambient>
+      <background>0.3 0.7 0.9 1</background>
+      <shadows>0</shadows>
+      <grid>false</grid>
+      <sky>
+        <clouds>
+          <speed>12</speed>
+        </clouds>
+      </sky>
+      <shadows>1</shadows>
+    </scene>
+    <light name='sun' type='directional'>
+      <cast_shadows>1</cast_shadows>
+      <pose>0 0 10 0 -0 0</pose>
+      <diffuse>1.0 1.0 1.0 1</diffuse>
+      <specular>0.2 0.2 0.2 1</specular>
+      <attenuation>
+        <range>1000</range>
+        <constant>0.9</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <direction>-0.5 0.5 -1.0</direction>
+    </light>
+
+    <!-- 地理坐标供 NavSat/GPS 插件使用；这里参考加拿大北阿尔伯塔地区。 -->
+    <!-- Origin placed in northern Alberta, Canada  -->
+    <spherical_coordinates>
+      <latitude_deg>57.0271155</latitude_deg>
+      <longitude_deg>-115.426770</longitude_deg>
+      <elevation>600</elevation>
+      <heading_deg>0</heading_deg>
+    </spherical_coordinates>
+
+    <!-- 主地形 mesh：包含桥、洞穴、管线和坡地，collision/visual 都使用 inspection_world。 -->
+    <model name='pipeline'>
+      <pose>0 20 -1 0 0 3.14159</pose>
+      <static>true</static>
+      <link name='pipeline'>
+        <collision name='pipeline_collision'>
+          <geometry>
+            <mesh>
+              <uri>
+                model://pipeline/inspection_world.dae
+              </uri>
+              <scale>2 2 1</scale>
+            </mesh>
+          </geometry>
+        </collision>
+        <visual name='pipeline_visual'>
+          <geometry>
+            <mesh>
+              <uri>
+                model://pipeline/inspection_world.dae
+              </uri>
+              <scale>2 2 1</scale>
+            </mesh>
+          </geometry>
+        </visual>
+      </link>
+    </model>
+
+    <!-- 水面只做 visual，不设置 collision，机器人不会与水面几何发生物理碰撞。 -->
+    <model name='water_level'>
+      <pose>0 20 -1 0 0 3.14159</pose>
+      <static>true</static>
+      <link name='water_level'>
+        <!-- no collision -->
+        <visual name='water_level_visual'>
+          <geometry>
+            <mesh>
+              <uri>
+                model://pipeline/inspection_water.dae
+              </uri>
+              <scale>2 2 1</scale>
+            </mesh>
+          </geometry>
+        </visual>
+      </link>
+    </model>
+
+    <!-- 户外基站模型：给 OutdoorNav/GPS 相关演示提供固定参照物。 -->
+    <model name='base_station'>
+      <pose>0 8 0 0 0 0</pose>
+      <static>true</static>
+      <link name='base_station'>
+        <collision name='base_station_collision'>
+          <geometry>
+            <mesh>
+              <uri>
+                model://accessories/base_station_with_tripod.stl
+              </uri>
+            </mesh>
+          </geometry>
+        </collision>
+        <visual name='base_station_visual'>
+          <geometry>
+            <mesh>
+              <uri>
+                model://accessories/base_station_with_tripod.dae
+              </uri>
+            </mesh>
+          </geometry>
+        </visual>
+      </link>
+    </model>
+  </world>
+</sdf>

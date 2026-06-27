@@ -1,0 +1,21 @@
+<?xml version='1.0' encoding='utf-8'?>
+<sdf version="1.10">
+  <model name="asphalt_plane">
+    <static>true</static>
+    <link name="link">
+      <visual name="visual">
+        <cast_shadows>false</cast_shadows>
+        <geometry>
+          <box>
+            <size>20 20 .1</size>
+          </box>
+        </geometry>
+        <material>
+          <ambient>0.45 0.45 0.45 1</ambient>
+          <diffuse>0.55 0.55 0.55 1</diffuse>
+          <specular>0.08 0.08 0.08 1</specular>
+        </material>
+      </visual>
+    </link>
+  </model>
+</sdf>

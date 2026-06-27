@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<!--
+  unitree_go2_description 保存 Go2 的机器人描述、网格模型和 Gazebo 世界。
+  unitree_go2_sim 会通过 xacro 生成 robot_description，并引用本包中的 meshes/worlds。
+-->
+<package format="3">
+  <name>unitree_go2_description</name>
+  <version>0.0.0</version>
+  <description>unitree go2 robot description</description>
+  <maintainer email="khaledgabr77@gmail.com">khaled</maintainer>
+  <license>TODO: License declaration</license>
+
+  <!-- 构建工具依赖：本包以 ament_cmake 安装资源文件。 -->
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <!-- 运行期依赖：解析 URDF/xacro 并发布机器人关节/TF 状态。 -->
+  <exec_depend>urdf</exec_depend>
+  <exec_depend>xacro</exec_depend>
+  <exec_depend>robot_state_publisher</exec_depend>
+  <exec_depend>joint_state_publisher</exec_depend>
+  <exec_depend>joint_state_publisher_gui</exec_depend>
+
+  <!-- Gazebo Sim 中 ros2_control 插件读取 xacro 内的 ros2_control 接口。 -->
+  <exec_depend>gz_ros2_control</exec_depend>
+
+  <export>
+    <!-- 声明构建类型，供 colcon/ament 正确处理本包。 -->
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>

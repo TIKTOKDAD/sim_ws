@@ -1,0 +1,135 @@
+## ros2_control 控制器配置。
+## Gazebo 通过 gz_ros2_control 插件加载本文件，随后 launch 文件用 spawner 激活控制器。
+controller_manager:
+  ros__parameters:
+    use_sim_time: true
+    # 控制循环频率。250 Hz 对四足力控仿真来说较稳，也避免过高频率拖慢 Gazebo。
+    update_rate: 250  # Hz
+
+    # 增大控制器切换超时，避免 Gazebo 初始化较慢时 spawner 误判失败。
+    controller_manager_timeout: 10.0  # seconds (default is 5.0)
+
+    # 发布 Gazebo 中的关节状态到 /joint_states。
+    joint_states_controller:
+      type: joint_state_broadcaster/JointStateBroadcaster
+
+    # 接收 CHAMP 输出的轨迹命令，并向 Gazebo 关节 effort 接口下发力矩。
+    joint_group_effort_controller:
+      type: joint_trajectory_controller/JointTrajectoryController
+
+# joint_state_broadcaster 本身没有复杂参数，只需要统一使用仿真时间。
+joint_states_controller:
+  ros__parameters:
+    use_sim_time: true
+
+joint_group_effort_controller:
+  ros__parameters:
+    use_sim_time: true
+    # 受控关节列表只包含 12 个主动自由度，足端 fixed joint 不参与力控。
+    joints:
+        - lf_hip_joint
+        - lf_upper_leg_joint
+        - lf_lower_leg_joint
+        - rf_hip_joint
+        - rf_upper_leg_joint
+        - rf_lower_leg_joint
+        - lh_hip_joint
+        - lh_upper_leg_joint
+        - lh_lower_leg_joint
+        - rh_hip_joint
+        - rh_upper_leg_joint
+        - rh_lower_leg_joint 
+
+    # GazeboSimSystem 在 leg.xacro 中声明了 effort 命令接口。
+    command_interfaces:
+      - effort
+    # 控制器用位置和速度作为反馈量，PID 根据这些状态闭环计算 effort。
+    state_interfaces:
+      - position
+      - velocity
+
+    # 允许轨迹目标只覆盖部分关节，便于调试单腿或单关节命令。
+    allow_partial_joints_goal: true
+
+    # 发布和动作监控频率。状态发布越高，RViz/调试工具越平滑，但 CPU 开销也更高。
+    state_publish_rate: 100.0
+    action_monitor_rate: 20.0
+
+    # 轨迹容差：goal_time 为 0 表示不额外等待目标到达，按当前目标实时控制。
+    constraints:
+      stopped_velocity_tolerance: 0.01
+      goal_time: 0.0
+
+    # 保持轨迹时间和 action 容差。这里偏向仿真稳定性，而不是严格动作超时。
+    hold_trajectory_duration: 0.0
+    action_tolerance: 1.0
+
+    # 每个主动关节的 PID 增益。当前四条腿使用同一组参数，方便先得到对称步态。
+    gains:
+      lf_hip_joint        : {p: 100.0, i: 0.2, d: 1.0, i_clamp: 2.5}
+      lf_upper_leg_joint  : {p: 100.0, i: 0.2, d: 1.0, i_clamp: 2.5}
+      lf_lower_leg_joint  : {p: 100.0, i: 0.2, d: 1.0, i_clamp: 2.5}
+      rf_hip_joint        : {p: 100.0, i: 0.2, d: 1.0, i_clamp: 2.5}
+      rf_upper_leg_joint  : {p: 100.0, i: 0.2, d: 1.0, i_clamp: 2.5}
+      rf_lower_leg_joint  : {p: 100.0, i: 0.2, d: 1.0, i_clamp: 2.5}
+      lh_hip_joint        : {p: 100.0, i: 0.2, d: 1.0, i_clamp: 2.5}
+      lh_upper_leg_joint  : {p: 100.0, i: 0.2, d: 1.0, i_clamp: 2.5}
+      lh_lower_leg_joint  : {p: 100.0, i: 0.2, d: 1.0, i_clamp: 2.5}
+      rh_hip_joint        : {p: 100.0, i: 0.2, d: 1.0, i_clamp: 2.5}
+      rh_upper_leg_joint  : {p: 100.0, i: 0.2, d: 1.0, i_clamp: 2.5}
+      rh_lower_leg_joint  : {p: 100.0, i: 0.2, d: 1.0, i_clamp: 2.5}
+      # 备用较柔和增益，适合排查振荡时临时参考。
+      # {p: 67.5, d: 0.3, i: 0.1, i_clamp: 1.5}
+
+    # 下方保留 position controller 的旧配置模板，便于从 effort 控制切换回位置控制做对比。
+    # action_monitor_rate: 10.0 # Defaults to 20
+    # state_publish_rate: 10.0 # Defaults to 50
+    # open_loop_control: true
+    # allow_integration_in_goal_trajectories: true
+    # constraints:
+    #   stopped_velocity_tolerance: 0.01 # Defaults to 0.01
+    #   goal_time: 0.0 # Defaults to 0.0 (start immediately)
+
+# joint_group_position_controller:
+#   ros__parameters:
+#     use_sim_time: True
+#     type: joint_trajectory_controller/JointTrajectoryController
+#     joints:
+#         - lf_hip_joint
+#         - lf_upper_leg_joint
+#         - lf_lower_leg_joint
+#         - rf_hip_joint
+#         - rf_upper_leg_joint
+#         - rf_lower_leg_joint
+#         - lh_hip_joint
+#         - lh_upper_leg_joint
+#         - lh_lower_leg_joint
+#         - rh_hip_joint
+#         - rh_upper_leg_joint
+#         - rh_lower_leg_joint 
+#     command_interfaces:
+#       - position
+#     state_interfaces:
+#       - position
+#       - velocity
+    
+#     # state_publish_rate: 25.0 # Defaults to 50
+#     # action_monitor_rate: 10.0 # Defaults to 20
+#     open_loop_control: true
+#     allow_integration_in_goal_trajectories: true
+#     constraints:
+#       stopped_velocity_tolerance: 0.01 # Defaults to 0.01
+#       goal_time: 0.0 # Defaults to 0.0 (start immediately)
+    # gains:
+    #     lf_hip_joint        : {p: 180, d: 0.9, i: 20}
+    #     lf_upper_leg_joint  : {p: 180, d: 0.9, i: 20}
+    #     lf_lower_leg_joint  : {p: 180, d: 0.9, i: 20}
+    #     rf_hip_joint        : {p: 180, d: 0.9, i: 20}
+    #     rf_upper_leg_joint  : {p: 180, d: 0.9, i: 20}
+    #     rf_lower_leg_joint  : {p: 180, d: 0.9, i: 20}
+    #     lh_hip_joint        : {p: 180, d: 0.9, i: 20}
+    #     lh_upper_leg_joint  : {p: 180, d: 0.9, i: 20}
+    #     lh_lower_leg_joint  : {p: 180, d: 0.9, i: 20}
+    #     rh_hip_joint        : {p: 180, d: 0.9, i: 20}
+    #     rh_upper_leg_joint  : {p: 180, d: 0.9, i: 20}
+    #     rh_lower_leg_joint  : {p: 180, d: 0.9, i: 20}

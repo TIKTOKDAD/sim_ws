@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<COLLADA xmlns="http://www.collada.org/2005/11/COLLADASchema" version="1.4.1">
+  <asset>
+    <contributor>
+      <authoring_tool>Codex generated citysim banner mesh</authoring_tool>
+    </contributor>
+    <unit name="meter" meter="1"/>
+    <up_axis>Z_UP</up_axis>
+  </asset>
+  <library_geometries>
+    <geometry id="nasa_banner_geometry" name="nasa_banner_geometry">
+      <mesh>
+        <source id="nasa_banner_positions">
+          <float_array id="nasa_banner_positions_array" count="12">0 -15.11808 -7.65086 0 15.11808 -7.65086 0 15.11808 7.65086 0 -15.11808 7.65086</float_array>
+          <technique_common>
+            <accessor source="#nasa_banner_positions_array" count="4" stride="3">
+              <param name="X" type="float"/>
+              <param name="Y" type="float"/>
+              <param name="Z" type="float"/>
+            </accessor>
+          </technique_common>
+        </source>
+        <source id="nasa_banner_normals">
+          <float_array id="nasa_banner_normals_array" count="3">-1 0 0</float_array>
+          <technique_common>
+            <accessor source="#nasa_banner_normals_array" count="1" stride="3">
+              <param name="X" type="float"/>
+              <param name="Y" type="float"/>
+              <param name="Z" type="float"/>
+            </accessor>
+          </technique_common>
+        </source>
+        <source id="nasa_banner_texcoords">
+          <float_array id="nasa_banner_texcoords_array" count="8">1 0 0 0 0 1 1 1</float_array>
+          <technique_common>
+            <accessor source="#nasa_banner_texcoords_array" count="4" stride="2">
+              <param name="S" type="float"/>
+              <param name="T" type="float"/>
+            </accessor>
+          </technique_common>
+        </source>
+        <vertices id="nasa_banner_vertices">
+          <input semantic="POSITION" source="#nasa_banner_positions"/>
+        </vertices>
+        <triangles count="2">
+          <input semantic="VERTEX" source="#nasa_banner_vertices" offset="0"/>
+          <input semantic="NORMAL" source="#nasa_banner_normals" offset="1"/>
+          <input semantic="TEXCOORD" source="#nasa_banner_texcoords" offset="2" set="0"/>
+          <p>0 0 0 2 0 2 1 0 1 0 0 0 3 0 3 2 0 2</p>
+        </triangles>
+      </mesh>
+    </geometry>
+  </library_geometries>
+  <library_visual_scenes>
+    <visual_scene id="Scene" name="Scene">
+      <node id="nasa_banner_node" name="nasa_banner_node">
+        <instance_geometry url="#nasa_banner_geometry"/>
+      </node>
+    </visual_scene>
+  </library_visual_scenes>
+  <scene>
+    <instance_visual_scene url="#Scene"/>
+  </scene>
+</COLLADA>

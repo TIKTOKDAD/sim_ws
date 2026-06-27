@@ -1,0 +1,19 @@
+<?xml version='1.0' encoding='utf-8'?>
+<sdf version="1.10">
+  <model name="Dumpster">
+    <link name="link">
+      <visual name="visual">
+        <geometry>
+          <mesh>
+            <uri>meshes/dumpster.dae</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <ambient>0.45 0.45 0.45 1</ambient>
+          <diffuse>0.55 0.55 0.55 1</diffuse>
+          <specular>0.08 0.08 0.08 1</specular>
+        </material>
+      </visual>
+    </link>
+  </model>
+</sdf>

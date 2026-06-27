@@ -1,0 +1,23 @@
+## CHAMP 步态参数。
+## 这些值决定四足控制器生成足端轨迹时的速度上限、摆腿高度和机身目标高度。
+/**:
+  ros__parameters:
+    gait:
+      # 膝关节朝向标记，CHAMP 用它判断腿部正解/逆解方向。
+      knee_orientation : ">>"
+      # Go2 不是平行四边形腿机构，因此关闭 pantograph_leg。
+      pantograph_leg : false
+      # 里程计缩放系数，用来补偿仿真步态估计偏差。
+      odom_scaler: 0.9
+      # 机体 x/y 平移速度和 z 轴角速度上限，单位通常为 m/s 与 rad/s。
+      max_linear_velocity_x : 0.3
+      max_linear_velocity_y : 0.25
+      max_angular_velocity_z : 0.5
+      # 质心前后偏置，正值会把期望质心向 x 正方向移动。
+      com_x_translation: 0.0
+      # 摆腿最高点、支撑腿下压深度和单腿支撑时长共同决定步态稳定性。
+      swing_height : 0.04
+      stance_depth : 0.01
+      stance_duration : 0.25
+      # 站立时 base 到地面的名义高度，应与 URDF 腿长和 spawn 高度匹配。
+      nominal_height : 0.225

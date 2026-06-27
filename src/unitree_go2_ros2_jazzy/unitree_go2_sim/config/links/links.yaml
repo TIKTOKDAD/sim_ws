@@ -1,0 +1,35 @@
+## CHAMP 需要知道每条腿对应的 link 顺序。
+## 这里从机身 base_link 开始，把四条腿按“髋、上腿、小腿、足端”的顺序列出。
+/**:
+  ros__parameters:
+    links_map:
+      # CHAMP 内部使用 base 作为机器人主体坐标系。
+      base: base_link
+
+      # 左前腿 link 链：lf 前缀对应 URDF 中的 left front。
+      left_front:
+        - lf_hip_link
+        - lf_upper_leg_link
+        - lf_lower_leg_link
+        - lf_foot_link
+
+      # 右前腿 link 链：rf 前缀对应 right front。
+      right_front:
+        - rf_hip_link
+        - rf_upper_leg_link
+        - rf_lower_leg_link
+        - rf_foot_link
+
+      # 左后腿 link 链：lh 前缀对应 left hind。
+      left_hind:
+        - lh_hip_link
+        - lh_upper_leg_link
+        - lh_lower_leg_link
+        - lh_foot_link
+
+      # 右后腿 link 链：rh 前缀对应 right hind。
+      right_hind:
+        - rh_hip_link
+        - rh_upper_leg_link
+        - rh_lower_leg_link
+        - rh_foot_link

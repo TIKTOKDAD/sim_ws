@@ -1,0 +1,24 @@
+<?xml version='1.0' encoding='utf-8'?>
+<sdf version="1.10">
+  <model name="Fast Food">
+    <static>true</static>
+    <link name="link">
+      <pose>0 0 1.57965648 0 0 0</pose>
+      <visual name="visual">
+        <geometry>
+          <mesh>
+            <uri>meshes/fast_food.dae</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <shader type="normal_map_object_space">
+            <normal_map>FastFood_Normal.png</normal_map>
+          </shader>
+          <ambient>0.45 0.45 0.45 1</ambient>
+          <diffuse>0.55 0.55 0.55 1</diffuse>
+          <specular>0.08 0.08 0.08 1</specular>
+        </material>
+      </visual>
+    </link>
+  </model>
+</sdf>

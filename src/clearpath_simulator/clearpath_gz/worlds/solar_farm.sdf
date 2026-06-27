@@ -1,0 +1,139 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<sdf version='1.4'>
+  <world name='solar_farm'>
+    <!-- 物理步长设置：0.003s 对应约 333Hz 物理积分，上限更新率 1000Hz。 -->
+    <physics type='ode'>
+      <max_step_size>0.003</max_step_size>
+      <real_time_factor>1.0</real_time_factor>
+      <real_time_update_rate>1000</real_time_update_rate>
+      <gravity>0 0 -9.8</gravity>
+    </physics>
+
+    <!-- Gazebo 系统插件：物理、用户命令、场景广播、传感器、IMU 和 GPS/NavSat。 -->
+    <plugin name='gz::sim::systems::Physics' filename='libgz-sim-physics-system.so'/>
+    <plugin name='gz::sim::systems::UserCommands' filename='libgz-sim-user-commands-system.so'/>
+    <plugin name='gz::sim::systems::SceneBroadcaster' filename='libgz-sim-scene-broadcaster-system.so'/>
+    <plugin name="gz::sim::systems::Sensors" filename="libgz-sim-sensors-system.so">
+      <render_engine>ogre2</render_engine>
+    </plugin>
+    <plugin name="gz::sim::systems::Imu" filename="libgz-sim-imu-system.so"/>
+    <plugin name="gz::sim::systems::NavSat" filename="libgz-sim-navsat-system.so"/>
+
+    <!-- 室外太阳能农场场景开启天空云层和阴影，用于户外导航与视觉感知测试。 -->
+    <scene>
+      <ambient>1 1 1 1</ambient>
+      <background>0.3 0.7 0.9 1</background>
+      <shadows>0</shadows>
+      <grid>false</grid>
+      <sky>
+        <clouds>
+          <speed>12</speed>
+        </clouds>
+      </sky>
+      <shadows>1</shadows>
+    </scene>
+    <light name='sun' type='directional'>
+      <cast_shadows>1</cast_shadows>
+      <pose>0 0 10 0 -0 0</pose>
+      <diffuse>1.0 1.0 1.0 1</diffuse>
+      <specular>0.2 0.2 0.2 1</specular>
+      <attenuation>
+        <range>1000</range>
+        <constant>0.9</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <direction>-0.5 0.5 -1.0</direction>
+    </light>
+
+    <!-- 地理坐标供 NavSat/GPS 插件使用；这里参考加拿大 Manitoba 的农场区域。 -->
+    <!-- Origin placed near the Big Red Barn near Stonewall, MB, Canada -->
+    <spherical_coordinates>
+      <surface_model>EARTH_WGS84</surface_model>
+      <latitude_deg>50.109461</latitude_deg>
+      <longitude_deg>-97.318978</longitude_deg>
+      <elevation>250</elevation>
+      <heading_deg>0</heading_deg>
+    </spherical_coordinates>
+
+    <!-- 主农业/太阳能农场 mesh，包含缓坡、围栏、建筑和太阳能板行。 -->
+    <model name='solar_farm'>
+      <pose>0 0 0 0 0 3.14159</pose>
+      <static>true</static>
+      <link name='solar_farm'>
+        <collision name='solar_farm_collision'>
+          <geometry>
+            <mesh>
+              <uri>
+                model://solar_farm/agriculture_world.dae
+              </uri>
+            </mesh>
+          </geometry>
+        </collision>
+        <visual name='solar_farm_visual'>
+          <geometry>
+            <mesh>
+              <uri>
+                model://solar_farm/agriculture_world.dae
+              </uri>
+            </mesh>
+          </geometry>
+        </visual>
+      </link>
+    </model>
+
+    <!--
+      Some accessories for OutdoorNav
+    -->
+    <!-- 户外基站模型：给 OutdoorNav/GPS 相关演示提供固定参照物。 -->
+    <model name='base_station'>
+      <pose>-30 -10 0.45 0 0 0</pose>
+      <static>true</static>
+      <link name='base_station'>
+        <collision name='base_station_collision'>
+          <geometry>
+            <mesh>
+              <uri>
+                model://accessories/base_station_with_tripod.stl
+              </uri>
+            </mesh>
+          </geometry>
+        </collision>
+        <visual name='base_station_visual'>
+          <geometry>
+            <mesh>
+              <uri>
+                model://accessories/base_station_with_tripod.dae
+              </uri>
+            </mesh>
+          </geometry>
+        </visual>
+      </link>
+    </model>
+    <!-- 无线充电座模型：提供户外 docking / 充电行为测试的固定参照物。 -->
+    <model name='charge_dock'>
+      <pose>-4.5 -4 0 0 0 3.14159</pose>
+      <static>true</static>
+      <link name='charge_dock'>
+        <collision name='charge_dock_collision'>
+          <geometry>
+            <mesh>
+              <uri>
+                model://accessories/wibotic_tr301.stl
+              </uri>
+            </mesh>
+          </geometry>
+        </collision>
+        <visual name='charge_dock_visual'>
+          <geometry>
+            <mesh>
+              <uri>
+                model://accessories/wibotic_tr301.dae
+              </uri>
+            </mesh>
+          </geometry>
+        </visual>
+      </link>
+    </model>
+  </world>
+</sdf>

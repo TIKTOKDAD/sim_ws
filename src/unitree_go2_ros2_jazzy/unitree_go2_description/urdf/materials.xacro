@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+<robot>
+
+    <!--
+        统一材质表。
+        这些材质可以被各个 link 的 visual 引用，避免在多个 xacro 中重复写 RGBA。
+        rgba 的第四个值是透明度，1.0 为不透明，0.0 为完全透明。
+    -->
+    <material name="black">
+        <color rgba="0.0 0.0 0.0 1.0"/>
+    </material>
+
+    <!-- 基础调试色：用于临时给 link 或传感器外壳着色。 -->
+    <material name="blue">
+        <color rgba="0.0 0.0 0.8 1.0"/>
+    </material>
+
+    <material name="green">
+        <color rgba="0.0 0.8 0.0 1.0"/>
+    </material>
+
+    <!-- grey 当前 alpha 为 0，视觉上透明，适合隐藏占位几何。 -->
+    <material name="grey">
+        <color rgba="0.2 0.2 0.2 0.0"/>
+    </material>
+
+    <!-- 下列颜色使用 0 到 255 的常见 RGB 值换算到 URDF 所需的 0 到 1。 -->
+    <material name="silver">
+        <color rgba="${233/255} ${233/255} ${216/255} 1.0"/>
+    </material>
+
+    <material name="orange">
+        <color rgba="${255/255} ${108/255} ${10/255} 1.0"/>
+    </material>
+
+    <material name="brown">
+        <color rgba="${222/255} ${207/255} ${195/255} 1.0"/>
+    </material>
+
+    <material name="red">
+        <color rgba="0.8 0.0 0.0 1.0"/>
+    </material>
+
+    <material name="white">
+        <color rgba="1.0 1.0 1.0 1.0"/>
+    </material>
+
+</robot>

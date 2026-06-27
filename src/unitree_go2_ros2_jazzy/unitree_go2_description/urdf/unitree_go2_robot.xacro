@@ -1,0 +1,198 @@
+<?xml version="1.0"?>
+
+<robot name="go2"
+    xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+    <!-- DEBUG=true 时会把 base_link 固定到 world，适合检查 URDF 姿态、传感器方向和碰撞体。 -->
+    <xacro:arg name="DEBUG" default="false"/>
+
+    <!-- 基础参数、材质、腿部宏、Gazebo 插件和传感器宏分文件维护，主文件只负责装配。 -->
+    <xacro:include filename="$(find unitree_go2_description)/urdf/const.xacro"/>
+    <xacro:include filename="$(find unitree_go2_description)/urdf/materials.xacro"/>
+    <xacro:include filename="$(find unitree_go2_description)/urdf/leg.xacro"/>
+    <!-- <xacro:include filename="$(find unitree_go2_description)/stairs.xacro"/> -->
+    <xacro:include filename="$(find unitree_go2_description)/urdf/unitree_go2_gazebo.xacro"/>
+    <!-- <xacro:include filename="$(find unitree_go2_description)/launch/stairs.urdf.xacro"/> -->
+    <xacro:include filename="$(find unitree_go2_description)/urdf/velodyne.xacro"/>
+    <xacro:include filename="$(find unitree_go2_description)/urdf/lidar_4D_lidar.xacro"/>
+    <!-- <xacro:stairs stairs="15" xpos="0" ypos="0" zpos="0" /> -->
+
+    <!--
+        旧版转子相关注释保留为提示：如果未来加入电机转子模型，需要考虑非固定关节和减速比。
+        当前模型把驱动简化到关节 effort 接口，由 Gazebo/ros2_control 直接施加力矩。
+    -->
+
+    <!-- 调试模式会把机器人挂在世界坐标下，不参与自由落体；正常仿真应保持 false。 -->
+    <xacro:if value="$(arg DEBUG)">
+        <link name="world"/>
+        <joint name="base_static_joint" type="fixed">
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+            <parent link="world"/>
+            <child link="base_link"/>
+        </joint>
+    </xacro:if>
+
+    <!-- base_link 是 ROS 生态中常用的机器人根坐标系，这里用极小盒子占位。 -->
+    <link name="base_link">
+        <visual>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+            <geometry>
+                <box size="0.001 0.001 0.001"/>
+            </geometry>
+        </visual>
+    </link>
+
+    <!-- trunk 是真实机身几何所在 link，base_link 固定连接到 trunk，方便导航栈使用 base_link。 -->
+    <joint name="floating_base" type="fixed">
+        <origin rpy="0 0 0" xyz="0 0 0"/>
+        <parent link="base_link"/>
+        <child link="trunk"/>
+    </joint>
+
+    <!-- 机身主体：视觉使用 trunk.dae，碰撞体使用简化盒子，惯量来自 const.xacro。 -->
+    <link name="trunk">
+        <visual>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+            <geometry>
+                <mesh filename="file://$(find unitree_go2_description)/meshes/trunk.dae" scale="1 1 1"/>
+            </geometry>
+        </visual>
+        <collision>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+            <geometry>
+                <box size="${trunk_length} ${trunk_width} ${trunk_height}"/>
+            </geometry>
+        </collision>
+        <inertial>
+            <origin rpy="0 0 0" xyz="${trunk_com_x} ${trunk_com_y} ${trunk_com_z}"/>
+            <mass value="${trunk_mass}"/>
+            <inertia ixx="${trunk_ixx}" ixy="${trunk_ixy}" ixz="${trunk_ixz}" iyy="${trunk_iyy}" iyz="${trunk_iyz}" izz="${trunk_izz}"/>
+        </inertial>
+    </link>
+
+    <!-- IMU 固定在 trunk 原点，Gazebo 传感器插件在 unitree_go2_gazebo.xacro 中绑定到 imu_link。 -->
+    <joint name="imu_joint" type="fixed">
+        <parent link="trunk"/>
+        <child link="imu_link"/>
+        <origin rpy="0 0 0" xyz="0 0 0"/>
+    </joint>
+
+    <link name="imu_link">
+        <inertial>
+            <mass value="0.001"/>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+            <inertia ixx="0.0001" ixy="0" ixz="0" iyy="0.0001" iyz="0" izz="0.0001"/>
+        </inertial>
+        <visual>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+            <geometry>
+                <box size="0.001 0.001 0.001"/>
+            </geometry>
+        </visual>
+        <collision>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+            <geometry>
+                <box size=".001 .001 .001"/>
+            </geometry>
+        </collision>
+    </link>
+
+    <!-- 相机 link：极小球体仅用于 RViz 可见占位，Gazebo 中的 RGB camera 传感器绑定到对应 link。 -->
+    <xacro:macro name="rgb_camera_mount" params="link_name joint_name xyz rpy color">
+        <link name="${link_name}">
+            <inertial>
+                <mass value="0.001"/>
+                <origin rpy="0 0 0" xyz="0 0 0"/>
+                <inertia ixx="0.0001" ixy="0" ixz="0" iyy="0.0001" iyz="0" izz="0.0001"/>
+            </inertial>
+            <visual>
+                <origin rpy="0 0 0" xyz="0 0 0"/>
+                <geometry>
+                    <box size="0.045 0.032 0.026"/>
+                </geometry>
+                <material name="${link_name}_body">
+                    <color rgba="${color}" />
+                </material>
+            </visual>
+            <visual>
+                <origin rpy="0 1.57079632679 0" xyz="0.031 0 0"/>
+                <geometry>
+                    <cylinder radius="0.010" length="0.018"/>
+                </geometry>
+                <material name="${link_name}_lens">
+                    <color rgba="0.02 0.02 0.02 1"/>
+                </material>
+            </visual>
+            <visual>
+                <origin rpy="0 1.57079632679 0" xyz="0.041 0 0"/>
+                <geometry>
+                    <cylinder radius="0.007" length="0.003"/>
+                </geometry>
+                <material name="${link_name}_glass">
+                    <color rgba="0.1 0.55 1.0 1"/>
+                </material>
+            </visual>
+            <collision>
+                <origin rpy="0 0 0" xyz="0 0 0"/>
+                <geometry>
+                    <box size="0.055 0.034 0.028"/>
+                </geometry>
+            </collision>
+        </link>
+        <joint name="${joint_name}" type="fixed">
+            <parent link="trunk"/>
+            <child link="${link_name}"/>
+            <origin rpy="${rpy}" xyz="${xyz}"/>
+        </joint>
+    </xacro:macro>
+
+    <!-- 前/左/右三路 RGB 相机。左相机朝 +Y，右相机朝 -Y。 -->
+    <xacro:rgb_camera_mount link_name="camera_link" joint_name="camera_joint" xyz="0.326 0 0.043" rpy="0 0 0" color="0.5 0 0 1"/>
+    <xacro:rgb_camera_mount link_name="left_camera_link" joint_name="left_camera_joint" xyz="0.0 0.10 0.043" rpy="0 0 1.57079632679" color="0 0.2 0.8 1"/>
+    <xacro:rgb_camera_mount link_name="right_camera_link" joint_name="right_camera_joint" xyz="0.0 -0.10 0.043" rpy="0 0 -1.57079632679" color="0 0.6 0.2 1"/>
+
+
+
+    <!-- <joint name="lidar_l1_joint" type="fixed">
+        <parent link="base_link"/>
+        <child link="lidar_l1_link"/>
+        <origin rpy="2.94 0 1.5705" xyz="0.25 -0.038 -0.03"/>
+    </joint>
+
+    <link name="lidar_l1_link">
+        <inertial>
+            <mass value="0.5"/>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+            <inertia ixx="0.01" ixy="0" ixz="0" iyy="0.01" iyz="0" izz="0.01"/>
+        </inertial>
+        <visual>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+            <geometry>
+                <mesh filename="file://$(find unitree_go2_description)/meshes/L1_4D_Lidar.dae" scale="1 1 1"/>
+            </geometry>
+            <material name="black">
+                <color rgba="0.0 0.0 0.0 1.0"/>
+            </material>
+        </visual>
+        <collision>
+            <origin rpy="0 0 0" xyz="0 0 0"/>
+            <geometry>
+                <mesh filename="file://$(find unitree_go2_description)/meshes/L1_4D_Lidar.dae" scale="1 1 1"/>
+            </geometry>
+            <material name="black">
+                <color rgba="0.0 0.0 0.0 1.0"/>
+            </material>
+        </collision>
+    </link> -->
+
+    <!--
+        四条腿由同一个 leg 宏生成。
+        rf/lf 为前腿，rh/lh 为后腿；mirror 控制左右符号，front_hind 控制前后符号。
+        name 前缀需要与 CHAMP 的 joints.yaml 和 links.yaml 保持一致。
+    -->
+    <xacro:leg name="rf" mirror="-1" mirror_dae= "False" front_hind="1" front_hind_dae="True" />
+    <xacro:leg name="lf" mirror="1" mirror_dae="True" front_hind="1" front_hind_dae="True" />
+    <xacro:leg name="rh" mirror="-1" mirror_dae="False" front_hind="-1" front_hind_dae="False" />
+    <xacro:leg name="lh" mirror="1" mirror_dae="True" front_hind="-1" front_hind_dae="False" />
+
+</robot>

@@ -1,0 +1,32 @@
+## CHAMP 关节映射。
+## 控制器按四条腿读取关节名，顺序必须和 URDF/xacro 中生成的关节保持一致。
+/**:
+  ros__parameters:
+    joints_map:
+      # 左前腿：髋关节、上腿关节、小腿关节、足端固定关节。
+      left_front:
+        - lf_hip_joint
+        - lf_upper_leg_joint
+        - lf_lower_leg_joint
+        - lf_foot_joint
+
+      # 右前腿。
+      right_front:
+        - rf_hip_joint
+        - rf_upper_leg_joint
+        - rf_lower_leg_joint
+        - rf_foot_joint
+
+      # 左后腿。
+      left_hind:
+        - lh_hip_joint
+        - lh_upper_leg_joint
+        - lh_lower_leg_joint
+        - lh_foot_joint
+
+      # 右后腿。
+      right_hind:
+        - rh_hip_joint
+        - rh_upper_leg_joint
+        - rh_lower_leg_joint
+        - rh_foot_joint

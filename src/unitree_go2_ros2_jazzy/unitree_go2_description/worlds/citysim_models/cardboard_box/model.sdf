@@ -1,0 +1,29 @@
+<?xml version='1.0' encoding='utf-8'?>
+<sdf version="1.10">
+  <model name="cardboard_box">
+    <static>true</static>
+    <pose>0 0 0.15 0 0 0</pose>
+    <link name="link">
+      <inertial>
+        <mass>2</mass>
+        <inertia>
+          <ixx>0.041666667</ixx>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyy>0.056666667</iyy>
+          <iyz>0</iyz>
+          <izz>0.068333333</izz>
+        </inertia>
+      </inertial>
+      <visual name="visual">
+        <pose>0 0 -0.15 0 0 0</pose>
+        <geometry>
+          <mesh>
+            <uri>meshes/cardboard_box.dae</uri>
+            <scale>1.25931896 1.007455168 0.755591376</scale>
+          </mesh>
+        </geometry>
+      </visual>
+    </link>
+  </model>
+</sdf>

@@ -1,0 +1,21 @@
+repositories:
+  # Clearpath 通用 ROS 2 工具与资源，clearpath_gz 运行时会依赖其中的通用 launch/资源。
+  clearpath_common:
+    type: git
+    url: https://github.com/clearpathrobotics/clearpath_common.git
+    version: jazzy
+  # robot.yaml 的解析和平台/传感器类型定义都来自 clearpath_config。
+  clearpath_config:
+    type: git
+    url: https://github.com/clearpathrobotics/clearpath_config.git
+    version: jazzy
+  # Clearpath 自定义消息，部分平台或传感器接口会通过该仓库提供。
+  clearpath_msgs:
+    type: git
+    url: https://github.com/clearpathrobotics/clearpath_msgs.git
+    version: jazzy
+  # 生成器回归测试仓库，CI 会用它比对 generated launch/param 是否发生预期变化。
+  clearpath_generator_tests:
+    type: git
+    url: https://github.com/clearpathrobotics/clearpath_generator_tests.git
+    version: jazzy
