@@ -1,0 +1,18 @@
+[submodule "src/clearpath_common"]
+	path = src/clearpath_common
+	url = https://github.com/clearpathrobotics/clearpath_common.git
+[submodule "src/clearpath_config"]
+	path = src/clearpath_config
+	url = https://github.com/clearpathrobotics/clearpath_config.git
+[submodule "src/clearpath_generator_tests"]
+	path = src/clearpath_generator_tests
+	url = https://github.com/clearpathrobotics/clearpath_generator_tests.git
+[submodule "src/clearpath_msgs"]
+	path = src/clearpath_msgs
+	url = https://github.com/clearpathrobotics/clearpath_msgs.git
+[submodule "src/clearpath_simulator"]
+	path = src/clearpath_simulator
+	url = https://github.com/clearpathrobotics/clearpath_simulator.git
+[submodule "src/unitree_go2_ros2_jazzy"]
+	path = src/unitree_go2_ros2_jazzy
+	url = https://github.com/TIKTOKDAD/ros_jazzy_go2.git

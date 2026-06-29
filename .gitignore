@@ -1,0 +1,15 @@
+/build/
+/install/
+/log/
+/src/.zip
+
+**/__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+htmlcov/
+
+*.swp
+*.swo
+*~
+.DS_Store
